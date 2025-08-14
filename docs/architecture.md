@@ -15,26 +15,24 @@
 
 ## High-Level Flow
 1. Exec clicks **Run Analysis** in the Lovable UI.  
-2. UI calls the **Lindy Orchestrator** via webhook.  
-3. Orchestrator fetches data from Supabase (`campaigns`, `segments`, `competitor_offers`) using REST.  
-4. Orchestrator invokes sub-agents:  
-   - **Analyst** → finds underperforming segments  
-   - **Gap-Finder** → detects missed opportunities vs. competitors  
-   - **Copywriter** → produces 3 campaign cards  
-5. Orchestrator writes results to Supabase `insights` with a `run_id`.  
-6. UI queries the **latest `run_id`** and renders three panels; user can **Export PDF**.
+2. UI calls the **Lindy Orchestrator** webhook.  
+3. Orchestrator reads campaign, segment, and competitor data from Supabase.  
+4. Orchestrator sends this data to three sub-agents:  
+   - **Analyst** → underperforming segments  
+   - **Gap-Finder** → missed opportunities vs competitors  
+   - **Copywriter** → 3 ready-to-run campaigns  
+5. Each sub-agent writes its output to Supabase `insights`.  
+6. UI pulls the latest `insights` for the most recent run and displays them in panels.
 
 ## Mermaid Diagram
 ```mermaid
 flowchart LR
-  A[Exec clicks 'Run Analysis' (Lovable UI)] --> B{{Lindy Orchestrator (Webhook)}}
-  B --> C[(Supabase: campaigns)]
-  B --> D[(Supabase: segments)]
-  B --> E[(Supabase: competitor_offers)]
-  B --> F[Analyst Agent]
-  B --> G[Gap-Finder Agent]
-  B --> H[Copywriter Agent]
-  F --> I[(Supabase: insights)]
-  G --> I
-  H --> I
-  I --> A
+  UI[Lovable UI] --> ORCH([Lindy Orchestrator])
+  ORCH --> DB[(Supabase: campaigns, segments, competitor_offers)]
+  ORCH --> ANALYST[Analyst]
+  ORCH --> GAP[Gap-Finder]
+  ORCH --> COPY[Copywriter]
+  ANALYST --> INS[(Supabase: insights)]
+  GAP --> INS
+  COPY --> INS
+  INS --> UI
